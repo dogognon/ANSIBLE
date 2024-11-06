@@ -1,0 +1,26 @@
+---
+- name: Déploiement de l'application
+  hosts: webservers
+  become: yes  # pour exécuter les commandes en tant que super-utilisateur
+  tasks:
+    - name: Mettre à jour les dépôts sur Debian et RedHat
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Installer Apache
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Installer Nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Démarrer le service web
+      ansible.builtin.service:
+        name: "{{ 'httpd' if ansible_os_family == 'RedHat' else 'nginx' }}"
+        state: started
+        enabled: true
